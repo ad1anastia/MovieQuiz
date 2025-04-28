@@ -74,7 +74,7 @@ final class MovieQuizViewController: UIViewController {
     // метод вызывается, когда пользователь нажимает на кнопку "Нет"
     @IBAction private func noButtonClicked(_ sender: UIButton) {
         let currentQuestion = questions[currentQuestionIndex]
-        let givenAnswer = false 
+        let givenAnswer = false
         
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
@@ -100,8 +100,8 @@ final class MovieQuizViewController: UIViewController {
         if isCorrect {
             correctAnswers += 1
         }
-        imageView.layer.masksToBounds = true // 1
-        imageView.layer.borderWidth = 8 // 2
+        imageView.layer.masksToBounds = true
+        imageView.layer.borderWidth = 8 
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
         
         // запускаем задачу через 1 секунду c помощью диспетчера задач
