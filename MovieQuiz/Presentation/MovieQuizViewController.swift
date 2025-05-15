@@ -40,46 +40,36 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
     // MARK: - QuestionFactoryDelegate
     func didReceiveNextQuestion(question: QuizQuestion?) {
         // проверка, что вопрос не nil
-        guard let question = question else {
-            return
-        }
-        
+        guard let question = question else { return }
         currentQuestion = question
         let viewModel = convert(model: question)
         
         DispatchQueue.main.async { [weak self] in
-            self?.show(quiz: viewModel)
+            guard let self = self else { return }
+            self.show(quiz: viewModel)
         }
     }
     
     // MARK: - IBAction methods
     // метод вызывается, когда пользователь нажимает на кнопку "Да"
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        // блокируем кнопку
-        setButtonsEnabled(false)
-        
-        let givenAnswer = true
-        
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        checkAnswer(givenAnswer: true)
     }
     
     // метод вызывается, когда пользователь нажимает на кнопку "Нет"
     @IBAction private func noButtonClicked(_ sender: UIButton) {
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        // блокируем кнопку
-        setButtonsEnabled(false)
-        
-        let givenAnswer = false
-        
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        checkAnswer(givenAnswer: false)
     }
     
     // MARK: - Private methods
+    private func checkAnswer(givenAnswer: Bool) {
+        guard let currentQuestion = currentQuestion else { return }
+        
+        // блокируем кнопки
+        setButtonsEnabled(false)
+        
+        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+    }
     // Общий метод для включения/выключения обеих кнопок
     private func setButtonsEnabled(_ isEnabled: Bool) {
         buttonYes.isEnabled = isEnabled
