@@ -7,12 +7,8 @@ final class MovieQuizViewController: UIViewController  {
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet private weak var textLabel: UILabel!
-    
-    
     @IBOutlet private weak var buttonYes: UIButton!
     @IBOutlet private weak var buttonNo: UIButton!
-    
-    private var alertPresenter: AlertPresenter?
     
     private var presenter: MovieQuizPresenter!
     
@@ -23,11 +19,11 @@ final class MovieQuizViewController: UIViewController  {
         
         imageView.layer.cornerRadius = 20
         
-        
         showLoadingIndicator()
     }
     
     // MARK: - IBAction methods
+    
     // метод вызывается, когда пользователь нажимает на кнопку "Да"
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
         presenter.checkAnswer(givenAnswer: true)

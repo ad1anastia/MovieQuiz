@@ -1,21 +1,14 @@
-//
-//  MovieQuizPresenter.swift
-//  MovieQuiz
-//
-//  Created by Nastya Adodina on 11.06.2025.
-//
-
 import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
-    
-    let questionsAmount: Int = 10
-    private var currentQuestionIndex: Int = 0
-    var correctAnswers: Int = 0
-    var currentQuestion: QuizQuestion?
-    weak var viewController: MovieQuizViewController?
     private var questionFactory: QuestionFactoryProtocol?
     private let statisticService: StatisticServiceProtocol = StatisticService()
+    private weak var viewController: MovieQuizViewController?
+    
+    private let questionsAmount: Int = 10
+    private var currentQuestionIndex: Int = 0
+    private var correctAnswers: Int = 0
+    private var currentQuestion: QuizQuestion?
     
     init(viewController: MovieQuizViewController) {
         self.viewController = viewController
@@ -24,6 +17,33 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         questionFactory?.loadData()
         viewController.showLoadingIndicator()
     }
+    
+    // MARK: - QuestionFactoryDelegate
+    
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        // проверка, что вопрос не nil
+        guard let question = question else {
+            return
+        }
+        
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.show(quiz: viewModel)
+        }
+    }
+    
+    func didLoadDataFromServer() {
+        viewController?.hideLoadingIndicator()
+        questionFactory?.requestNextQuestion()
+    }
+    
+    func didFailToLoadData(with error: any Error) {
+        viewController?.showNetworkError(message: error.localizedDescription)
+    }
+    
+    // MARK: - IBAction methods
     
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
@@ -50,30 +70,16 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         proceedWithAnswer(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        // проверка, что вопрос не nil
-        guard let question = question else {
-            return
-        }
-        
-        currentQuestion = question
-        let viewModel = convert(model: question)
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.viewController?.show(quiz: viewModel)
-        }
-    }
     
-    func didLoadDataFromServer() {
-        viewController?.hideLoadingIndicator()
+    func restartGame() {
+        currentQuestionIndex = 0
+        correctAnswers = 0
         questionFactory?.requestNextQuestion()
     }
+
+    // MARK: - Private methods
     
-    func didFailToLoadData(with error: any Error) {
-        viewController?.showNetworkError(message: error.localizedDescription)
-    }
-    
-    func proceedToNextQuestionOrResults() {
+    private func proceedToNextQuestionOrResults() {
         if self.isLastQuestion() {
             // Обновляем статистику
             statisticService.store(correct: correctAnswers, total: 10)
@@ -103,18 +109,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     }
     
-    func restartGame() {
-        currentQuestionIndex = 0
-        correctAnswers = 0
-        questionFactory?.requestNextQuestion()
-    }
-    
-    func didAnswer(isCorrectAnswer: Bool) {
-        if (isCorrectAnswer) { correctAnswers += 1 }
-        
-    }
-    
-    func proceedWithAnswer(isCorrect: Bool) {
+    private func proceedWithAnswer(isCorrect: Bool) {
       didAnswer(isCorrectAnswer: isCorrect)
         
         // запускаем задачу через 1 секунду c помощью диспетчера задач
@@ -125,5 +120,10 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             viewController?.hideImageBorder()
             proceedToNextQuestionOrResults()
         }
+    }
+    
+    private func didAnswer(isCorrectAnswer: Bool) {
+        if (isCorrectAnswer) { correctAnswers += 1 }
+        
     }
 }
