@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController  {
+final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
     
     // MARK: Properties
     @IBOutlet private weak var counterLabel: UILabel!
