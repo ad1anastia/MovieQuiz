@@ -14,11 +14,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
     
     private var correctAnswers = 0
     
-    private var currentQuestion: QuizQuestion?
     private var alertPresenter: AlertPresenter?
     
     private var questionFactory: QuestionFactoryProtocol?
-    private var statisticService: StatisticServiceProtocol?
     
     private let presenter = MovieQuizPresenter()
     
@@ -26,7 +24,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
     override func viewDidLoad() {
         super.viewDidLoad()
         imageView.layer.cornerRadius = 20
-        statisticService = StatisticService()
         
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
         showLoadingIndicator()
@@ -34,29 +31,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
         questionFactory?.loadData()
     }
     
-    // MARK: - QuestionFactoryDelegate
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        // проверка, что вопрос не nil
-        guard let question = question else { return }
-        currentQuestion = question
-        let viewModel = presenter.convert(model: question)
-        
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            self.show(quiz: viewModel)
-        }
-    }
-    
     // MARK: - IBAction methods
     // метод вызывается, когда пользователь нажимает на кнопку "Да"
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        presenter.currentQuestion = currentQuestion
         presenter.checkAnswer(givenAnswer: true)
     }
     
     // метод вызывается, когда пользователь нажимает на кнопку "Нет"
     @IBAction private func noButtonClicked(_ sender: UIButton) {
-        presenter.currentQuestion = currentQuestion
         presenter.checkAnswer(givenAnswer: false)
     }
     
@@ -69,7 +51,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
     }
     
     // метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
-    private func show(quiz step: QuizStepViewModel) {
+    func show(quiz step: QuizStepViewModel) {
     
     //анимация появления картинок
            UIView.transition(with: imageView,
@@ -100,41 +82,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
             //скрываем подсветку рамки
             self.imageView.layer.borderWidth = 0
             self.imageView.layer.borderColor = UIColor.clear.cgColor
-            self.showNextQuestionOrResults()
+            self.presenter.showNextQuestionOrResults()
         }
     }
     
-    private func showNextQuestionOrResults() {
-        if presenter.isLastQuestion() {
-            // Обновляем статистику
-            statisticService?.store(correct: correctAnswers, total: 10)
-            
-            // Получаем текущие статистические данные
-            let gamesCount = statisticService?.gamesCount ?? 0
-            let bestGame = statisticService?.bestGame
-            let totalAccuracy = statisticService?.totalAccuracy ?? 0
-            
-            // Формируем строку результата
-            let resultText = """
-            Ваш результат: \(correctAnswers)/10
-            Количество сыгранных квизов: \(gamesCount)
-            Рекорд: \(bestGame?.correct ?? 0)/\(bestGame?.total ?? 0) (\(bestGame?.date.dateTimeString ?? ""))
-            Средняя точность: \(String(format: "%.2f", totalAccuracy))%
-            """
-            
-            // Создаем ViewModel для результатов
-            let viewModel = QuizResultsViewModel(
-                title: "Этот раунд окончен!",
-                text: resultText,
-                buttonText: "Сыграть ещё раз")
-            show(with: viewModel)
-        } else {
-            presenter.switchToNextQuestion()
-            self.questionFactory?.requestNextQuestion()
-        }
-    }
-    
-    private func show(with result: QuizResultsViewModel) {
+    func show(with result: QuizResultsViewModel) {
         let alertPresenter = AlertPresenter(viewController: self)
         let alertModel = AlertModel(
             title: result.title,
@@ -178,7 +130,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
         activityIndicator.stopAnimating()
     }
     
-    //MARK: - Public Methods
+    // MARK: - Public Methods
+    
+    // MARK: - QuestionFactoryDelegate
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        presenter.didReceiveNextQuestion(question: question)
+    }
     
     func didLoadDataFromServer() {
         hideLoadingIndicator()
