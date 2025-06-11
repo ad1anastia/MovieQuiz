@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  {
+final class MovieQuizViewController: UIViewController  {
     
     // MARK: Properties
     @IBOutlet private weak var counterLabel: UILabel!
@@ -12,23 +12,19 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
     @IBOutlet private weak var buttonYes: UIButton!
     @IBOutlet private weak var buttonNo: UIButton!
     
-    private var correctAnswers = 0
-    
     private var alertPresenter: AlertPresenter?
     
-    private var questionFactory: QuestionFactoryProtocol?
-    
-    private let presenter = MovieQuizPresenter()
+    private var presenter: MovieQuizPresenter!
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        presenter = MovieQuizPresenter(viewController: self)
+        
         imageView.layer.cornerRadius = 20
         
-        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
-        showLoadingIndicator()
         
-        questionFactory?.loadData()
+        showLoadingIndicator()
     }
     
     // MARK: - IBAction methods
@@ -52,25 +48,23 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
     
     // метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
     func show(quiz step: QuizStepViewModel) {
-    
-    //анимация появления картинок
-           UIView.transition(with: imageView,
-                             duration: 0.3,
-                             options: .transitionCrossDissolve,
-                             animations: {
-               self.imageView.image = step.image
-               self.textLabel.text = step.question
-               self.counterLabel.text = step.questionNumber
-           })
+        
+        //анимация появления картинок
+        UIView.transition(with: imageView,
+                          duration: 0.3,
+                          options: .transitionCrossDissolve,
+                          animations: {
+            self.imageView.image = step.image
+            self.textLabel.text = step.question
+            self.counterLabel.text = step.questionNumber
+        })
         
         // разблокировать кнопки
         setButtonsEnabled(true)
     }
     
     func showAnswerResult(isCorrect: Bool) {
-        if isCorrect {
-            correctAnswers += 1
-        }
+        presenter.didAnswer(isCorrectAnswer: isCorrect)
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
@@ -94,56 +88,36 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
             buttonText: result.buttonText,
             completion: { [weak self] in
                 guard let self = self else { return }
-                self.presenter.resetQuestionIndex()
-                self.correctAnswers = 0
-                self.questionFactory?.requestNextQuestion()
+                self.presenter.restartGame()
             }
         )
-       alertPresenter.show(alert: alertModel)
+        alertPresenter.show(alert: alertModel)
     }
     
-    private func showNetworkError(message: String) {
+    func showNetworkError(message: String) {
         hideLoadingIndicator()
         let alertPresenter = AlertPresenter(viewController: self)
         let model = AlertModel(title: "Ошибка",
                                message: message,
                                buttonText: "Попробовать еще раз") { [weak self] in
             guard let self = self else { return }
-            self.presenter.resetQuestionIndex()
-            self.correctAnswers = 0
-            self.questionFactory?.requestNextQuestion()
+            self.presenter.restartGame()
             self.setButtonsEnabled(true)
             
         }
         alertPresenter.show(alert: model)
     }
     
-    private func showLoadingIndicator() {
+    func showLoadingIndicator() {
         DispatchQueue.main.async { [weak self] in
             self?.activityIndicator?.isHidden = false
             self?.activityIndicator?.startAnimating()
         }
     }
     
-    private func hideLoadingIndicator() {
+    func hideLoadingIndicator() {
         activityIndicator.isHidden = true
         activityIndicator.stopAnimating()
-    }
-    
-    // MARK: - Public Methods
-    
-    // MARK: - QuestionFactoryDelegate
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        presenter.didReceiveNextQuestion(question: question)
-    }
-    
-    func didLoadDataFromServer() {
-        hideLoadingIndicator()
-        questionFactory?.requestNextQuestion()
-    }
-    
-    func didFailToLoadData(with error: Error) {
-        showNetworkError(message: error.localizedDescription) 
     }
 }
     
