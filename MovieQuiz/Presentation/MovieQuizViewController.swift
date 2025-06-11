@@ -38,7 +38,7 @@ final class MovieQuizViewController: UIViewController  {
         presenter.checkAnswer(givenAnswer: false)
     }
     
-    // MARK: - Private methods
+    // MARK: - Internal methods
     
     // Общий метод для включения/выключения обеих кнопок
     func setButtonsEnabled(_ isEnabled: Bool) {
@@ -63,21 +63,15 @@ final class MovieQuizViewController: UIViewController  {
         setButtonsEnabled(true)
     }
     
-    func showAnswerResult(isCorrect: Bool) {
-        presenter.didAnswer(isCorrectAnswer: isCorrect)
+    func highlightImageBorder(isCorrectAnswer: Bool) {
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
-        imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-        
-        // запускаем задачу через 1 секунду c помощью диспетчера задач
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self = self else { return }
-            
-            //скрываем подсветку рамки
-            self.imageView.layer.borderWidth = 0
-            self.imageView.layer.borderColor = UIColor.clear.cgColor
-            self.presenter.showNextQuestionOrResults()
-        }
+        imageView.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+    }
+    
+    func hideImageBorder() {
+        self.imageView.layer.borderWidth = 0
+        self.imageView.layer.borderColor = UIColor.clear.cgColor
     }
     
     func show(with result: QuizResultsViewModel) {
