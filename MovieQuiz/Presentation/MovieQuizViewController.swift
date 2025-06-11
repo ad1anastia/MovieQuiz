@@ -12,15 +12,15 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
     @IBOutlet private weak var buttonYes: UIButton!
     @IBOutlet private weak var buttonNo: UIButton!
     
-    private var currentQuestionIndex = 0
     private var correctAnswers = 0
-    private let questionsAmount: Int = 10
     
     private var currentQuestion: QuizQuestion?
     private var alertPresenter: AlertPresenter?
     
     private var questionFactory: QuestionFactoryProtocol?
     private var statisticService: StatisticServiceProtocol?
+    
+    private let presenter = MovieQuizPresenter()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -39,7 +39,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
         // проверка, что вопрос не nil
         guard let question = question else { return }
         currentQuestion = question
-        let viewModel = convert(model: question)
+        let viewModel = presenter.convert(model: question)
         
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -71,15 +71,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
     private func setButtonsEnabled(_ isEnabled: Bool) {
         buttonYes.isEnabled = isEnabled
         buttonNo.isEnabled = isEnabled
-    }
-    
-    // метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let questionStep = QuizStepViewModel(
-            image: UIImage(data: model.image) ?? UIImage(),
-            question: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-        return questionStep
     }
     
     // метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
@@ -119,7 +110,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
     }
     
     private func showNextQuestionOrResults() {
-        if currentQuestionIndex == questionsAmount - 1 {
+        if presenter.isLastQuestion() {
             // Обновляем статистику
             statisticService?.store(correct: correctAnswers, total: 10)
             
@@ -143,7 +134,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
                 buttonText: "Сыграть ещё раз")
             show(with: viewModel)
         } else {
-            currentQuestionIndex += 1
+            presenter.switchToNextQuestion()
             self.questionFactory?.requestNextQuestion()
         }
     }
@@ -156,7 +147,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
             buttonText: result.buttonText,
             completion: { [weak self] in
                 guard let self = self else { return }
-                self.currentQuestionIndex = 0
+                self.presenter.resetQuestionIndex()
                 self.correctAnswers = 0
                 self.questionFactory?.requestNextQuestion()
             }
@@ -171,7 +162,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
                                message: message,
                                buttonText: "Попробовать еще раз") { [weak self] in
             guard let self = self else { return }
-            self.currentQuestionIndex = 0
+            self.presenter.resetQuestionIndex()
             self.correctAnswers = 0
             self.questionFactory?.requestNextQuestion()
             self.setButtonsEnabled(true)
