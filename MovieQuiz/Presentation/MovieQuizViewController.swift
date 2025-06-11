@@ -50,25 +50,20 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
     // MARK: - IBAction methods
     // метод вызывается, когда пользователь нажимает на кнопку "Да"
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        checkAnswer(givenAnswer: true)
+        presenter.currentQuestion = currentQuestion
+        presenter.checkAnswer(givenAnswer: true)
     }
     
     // метод вызывается, когда пользователь нажимает на кнопку "Нет"
     @IBAction private func noButtonClicked(_ sender: UIButton) {
-        checkAnswer(givenAnswer: false)
+        presenter.currentQuestion = currentQuestion
+        presenter.checkAnswer(givenAnswer: false)
     }
     
     // MARK: - Private methods
-    private func checkAnswer(givenAnswer: Bool) {
-        guard let currentQuestion = currentQuestion else { return }
-        
-        // блокируем кнопки
-        setButtonsEnabled(false)
-        
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
-    }
+    
     // Общий метод для включения/выключения обеих кнопок
-    private func setButtonsEnabled(_ isEnabled: Bool) {
+    func setButtonsEnabled(_ isEnabled: Bool) {
         buttonYes.isEnabled = isEnabled
         buttonNo.isEnabled = isEnabled
     }
@@ -90,7 +85,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
         setButtonsEnabled(true)
     }
     
-    private func showAnswerResult(isCorrect: Bool) {
+    func showAnswerResult(isCorrect: Bool) {
         if isCorrect {
             correctAnswers += 1
         }
