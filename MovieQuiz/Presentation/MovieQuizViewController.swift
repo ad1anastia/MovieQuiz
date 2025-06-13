@@ -10,7 +10,7 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     @IBOutlet private weak var buttonYes: UIButton!
     @IBOutlet private weak var buttonNo: UIButton!
     
-    private var presenter: MovieQuizPresenter!
+    private var presenter: MovieQuizPresenter?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -26,12 +26,12 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     
     // метод вызывается, когда пользователь нажимает на кнопку "Да"
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        presenter.checkAnswer(givenAnswer: true)
+        presenter?.checkAnswer(givenAnswer: true)
     }
     
     // метод вызывается, когда пользователь нажимает на кнопку "Нет"
     @IBAction private func noButtonClicked(_ sender: UIButton) {
-        presenter.checkAnswer(givenAnswer: false)
+        presenter?.checkAnswer(givenAnswer: false)
     }
     
     // MARK: - Internal methods
@@ -78,7 +78,7 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
             buttonText: result.buttonText,
             completion: { [weak self] in
                 guard let self = self else { return }
-                self.presenter.restartGame()
+                self.presenter?.restartGame()
             }
         )
         alertPresenter.show(alert: alertModel)
@@ -91,7 +91,7 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
                                message: message,
                                buttonText: "Попробовать еще раз") { [weak self] in
             guard let self = self else { return }
-            self.presenter.restartGame()
+            self.presenter?.restartGame()
             self.setButtonsEnabled(true)
             
         }

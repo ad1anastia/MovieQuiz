@@ -7,17 +7,13 @@
 
 import XCTest
 
-class MovieQuizUITests: XCTestCase {
-    
+final class MovieQuizUITests: XCTestCase {
     var app: XCUIApplication!
     
     override func setUpWithError() throws {
         try super.setUpWithError()
-        
-        
         app = XCUIApplication()
         app.launch()
-        
         continueAfterFailure = false
     }
     
@@ -41,8 +37,7 @@ class MovieQuizUITests: XCTestCase {
         let secondPosterData = secondPoster.screenshot().pngRepresentation
         
         XCTAssertNotEqual(firstPosterData, secondPosterData)
-        
-        
+  
         let indexLabel = app.staticTexts["Index"]
         XCTAssertEqual(indexLabel.label, "2/10")
     }
@@ -60,11 +55,9 @@ class MovieQuizUITests: XCTestCase {
         let secondPosterData = secondPoster.screenshot().pngRepresentation
         
         XCTAssertNotEqual(firstPosterData, secondPosterData)
-        
-        
+
         let indexLabel = app.staticTexts["Index"]
         XCTAssertEqual(indexLabel.label, "2/10")
-        
         
         func testGameFinish() {
             sleep(3)
@@ -72,7 +65,6 @@ class MovieQuizUITests: XCTestCase {
                 app.buttons["No"].tap()
                 sleep(2)
             }
-            
             
             let alert = app.alerts["Game results"]
             
@@ -97,5 +89,4 @@ class MovieQuizUITests: XCTestCase {
             XCTAssertTrue(indexLabel.label == "1/10")
         }
     }
-    
 }

@@ -3,8 +3,7 @@ import UIKit
 final class MovieQuizPresenter: QuestionFactoryDelegate {
     private var questionFactory: QuestionFactoryProtocol?
     private let statisticService: StatisticServiceProtocol = StatisticService()
-    //private weak var viewController: MovieQuizViewController?
-     weak var viewController: MovieQuizViewControllerProtocol?
+    weak var viewController: MovieQuizViewControllerProtocol?
     
     private let questionsAmount: Int = 10
     private var currentQuestionIndex: Int = 0
@@ -23,10 +22,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     func didReceiveNextQuestion(question: QuizQuestion?) {
         // проверка, что вопрос не nil
-        guard let question = question else {
-            return
-        }
-        
+        guard let question else { return }
         currentQuestion = question
         let viewModel = convert(model: question)
         
@@ -77,7 +73,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         correctAnswers = 0
         questionFactory?.requestNextQuestion()
     }
-
+    
     // MARK: - Private methods
     
     private func proceedToNextQuestionOrResults() {
@@ -111,7 +107,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     }
     
     private func proceedWithAnswer(isCorrect: Bool) {
-      didAnswer(isCorrectAnswer: isCorrect)
+        didAnswer(isCorrectAnswer: isCorrect)
+        viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
         
         // запускаем задачу через 1 секунду c помощью диспетчера задач
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
@@ -124,7 +121,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     }
     
     private func didAnswer(isCorrectAnswer: Bool) {
-        if (isCorrectAnswer) { correctAnswers += 1 }
-        
-    }
+            guard isCorrectAnswer else { return }
+            correctAnswers += 1
+        }
 }
